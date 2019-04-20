@@ -1,0 +1,3 @@
+<launch>
+	<node name="flight_path_node" pkg="flight_path" type="flight_path_node" output="screen"/>
+</launch>
