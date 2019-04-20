@@ -1,0 +1,8 @@
+prefix=/home/aero/catkin_ws/devel
+
+Name: flight_path
+Description: Description of flight_path
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/aero/catkin_ws/devel/lib 
+Requires: 
