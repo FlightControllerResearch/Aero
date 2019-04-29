@@ -5,13 +5,16 @@
 */
 
 #include <ros/ros.h>
+#include <tf/transform_datatypes.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/TwistStamped.h>
 #include <mavros_msgs/CommandBool.h>
 #include <mavros_msgs/CommandTOL.h>
 #include <mavros_msgs/GlobalPositionTarget.h>
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/State.h>
 #include <sensor_msgs/NavSatFix.h>
+#include <std_msgs/Float64.h>
 
 #define FLIGHT_ALTITUDE 1.5f;
 
@@ -26,40 +29,50 @@ void stateCallback(const mavros_msgs::State::ConstPtr& msg) {
 void globalPositionCallback(const sensor_msgs::NavSatFix::ConstPtr& msg) {
 	global_position = *msg;	
 	global_position_received = true;
-	ROS_INFO("Global position: [%.8f, %.8f, %.4f]", msg->latitude, msg->longitude, msg->altitude);
+	//ROS_INFO("Global position: [%.8f, %.8f, %.4f]", msg->latitude, msg->longitude, msg->altitude);
 }
 
 int main(int argc, char** argv) {
 	ros::init(argc, argv, "flight_path_node");
 	ros::NodeHandle nh;
 
-    ros::Subscriber state_sub = nh.subscribe<mavros_msgs::State>("mavros_node/state", 10, stateCallback);
-	ros::Subscriber global_pos_sub = nh.subscribe<sensor_msgs::NavSatFix>("mavros_node/global_position/global", 1, globalPositionCallback);
+    ros::Subscriber state_sub = nh.subscribe<mavros_msgs::State>("mavros/state", 10, stateCallback);
+	ros::Subscriber global_pos_sub = nh.subscribe<sensor_msgs::NavSatFix>("mavros/global_position/global", 1, globalPositionCallback);
     ros::Publisher local_pos_pub = nh.advertise<geometry_msgs::PoseStamped>("mavros/setpoint_position/local", 10);
     ros::Publisher global_target_pub = nh.advertise<mavros_msgs::GlobalPositionTarget>("mavros/setpoint_position/global", 10);
+
+	ros::Publisher move_pub = nh.advertise<geometry_msgs::TwistStamped>("mavros/setpoint_velocity/cmd_vel", 10);
 
     ros::ServiceClient arming_client = nh.serviceClient<mavros_msgs::CommandBool>("mavros/cmd/arming");
     ros::ServiceClient land_client = nh.serviceClient<mavros_msgs::CommandTOL>("mavros/cmd/land");
     ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>("mavros/set_mode");
 
-	ros::Rate rate(10.0);
+
+	ros::Publisher mav_att_pub = nh.advertise<geometry_msgs::PoseStamped>("mavros/setpoint_attitude/attitude", 100);
+	ros::Publisher mav_thr_pub = nh.advertise<std_msgs::Float64>("mavros/setpoint_attitude/att_throttle", 100);
+	//ros::Subscriber mav_imu_data_sub = nh.subscribe<sensor_msgs::Imu>("mavros/imu/data", 100, mav_imu_data_callback);
+
+	ros::Rate rate(20.0);
 	// Wait for the flight controller to connect
 	while(ros::ok() && current_state.connected) {
 		ros::spinOnce();
 		rate.sleep();
 	}
 	// Wait to get first global position message
-	while(ros::ok() && !global_position_received) {
+	/*while(ros::ok() && !global_position_received) {
 		ROS_INFO("Waiting for GPS signal...");
 		ros::spinOnce();
 		rate.sleep();
-	}
+	}*/
 
 	// Initialize waypoint to target to current position
 	mavros_msgs::GlobalPositionTarget global_waypoint_target;
 	global_waypoint_target.latitude = global_position.latitude;
 	global_waypoint_target.longitude = global_position.longitude;
 	global_waypoint_target.altitude = global_position.altitude;
+
+	geometry_msgs::TwistStamped move_msg;
+	move_msg.twist.linear.z = 1.0f;
 	
 	// Send message to initialize
 	for(unsigned int i = 0; i < 20; i++) {
@@ -75,44 +88,66 @@ int main(int argc, char** argv) {
     mavros_msgs::CommandBool arm_cmd;
     arm_cmd.request.value = true;
 	ros::Time last_request = ros::Time::now();
+
     // Change to offboard mode and arm
-    while(ros::ok() && !current_state.armed){
+	ROS_INFO("Attempting to set proper mode and arm");
+    while(ros::ok()){
         if(current_state.mode != "OFFBOARD" && (ros::Time::now() - last_request > ros::Duration(5.0))){
-          ROS_INFO("%s", current_state.mode.c_str());
+			ROS_INFO("%s", current_state.mode.c_str());
             if(set_mode_client.call(offb_set_mode) &&
                 offb_set_mode.response.mode_sent){
                 ROS_INFO("Offboard enabled");
+				break;
             } else {
 				ROS_INFO_THROTTLE(1, "Mode not yet changed");
 			}
             last_request = ros::Time::now();
-        } else {
-            if(!current_state.armed && (ros::Time::now() - last_request > ros::Duration(5.0))){
-                if(arming_client.call(arm_cmd) &&
-                    arm_cmd.response.success){
-                    ROS_INFO("Vehicle armed");
-                }
-				else {
-					ROS_INFO("Not yet armed");
-				}
-                last_request = ros::Time::now();
-            }
         }
         ros::spinOnce();
         rate.sleep();
     }
-	ROS_INFO("Ready to target waypoints");
-	
-	global_waypoint_target.altitude = global_position.altitude + FLIGHT_ALTITUDE;
 	while(ros::ok()) {
-		global_waypoint_target.header.stamp = ros::Time::now();
-		global_target_pub.publish(global_waypoint_target);
+		if(!current_state.armed && (ros::Time::now() - last_request > ros::Duration(5.0))){
+			if(arming_client.call(arm_cmd) &&
+				arm_cmd.response.success){
+				ROS_INFO("Vehicle armed");
+				break;
+			}
+			else {
+				ROS_INFO("Not yet armed");
+			}
+			last_request = ros::Time::now();
+		}
 		ros::spinOnce();
-		ROS_INFO("At altitude %.2f", global_position.altitude);	
 		rate.sleep();
 	}
 
-	/*
+	
+	//move_pub.publish(move_msg);
+	/*std_msgs::Float64 cmd_thr;
+	geometry_msgs::PoseStamped cmd_att;
+	cmd_att.pose.position.x = 0.0f;
+	cmd_att.pose.position.y = 0.0f;
+	cmd_att.pose.position.z = 0.0f;
+	tf::Quaternion mav_orientation = tf::createQuaternionFromRPY(0.5235, 0.5235, 0.0);
+	cmd_att.pose.orientation.x = mav_orientation.x();
+	cmd_att.pose.orientation.y = mav_orientation.y();
+	cmd_att.pose.orientation.z = mav_orientation.z();
+	cmd_att.pose.orientation.w = mav_orientation.w();
+	cmd_thr.data = 0.9f;
+	for(int i = 0; i < 500; i++) {
+		cmd_att.header.stamp = ros::Time::now();
+		cmd_att.header.seq = i;
+		mav_att_pub.publish(cmd_att);
+		mav_thr_pub.publish(cmd_thr);
+		rate.sleep();
+	}
+	ROS_INFO("Finished sending throttle/attitude commands");*/
+	
+	ROS_INFO("Ready to target waypoints");
+	
+	global_waypoint_target.altitude = global_position.altitude + FLIGHT_ALTITUDE;
+	
 	geometry_msgs::PoseStamped pose;
     pose.pose.position.x = 0;
     pose.pose.position.y = 0;
@@ -167,7 +202,7 @@ int main(int argc, char** argv) {
       ros::spinOnce();
       rate.sleep();
     }
-	*/
+	
 
 	// Loop until program is killed
 	while(ros::ok()) {

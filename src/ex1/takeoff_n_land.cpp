@@ -10,10 +10,12 @@
 #include <mavros_msgs/CommandTOL.h>
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/State.h>
+#include <mavros_msgs/HomePosition.h>
 
 #define FLIGHT_ALTITUDE 1.5f
 
 mavros_msgs::State current_state;
+mavros_msgs::HomePosition home_position;
 void state_cb(const mavros_msgs::State::ConstPtr& msg){
     current_state = *msg;
 }
@@ -25,8 +27,12 @@ int main(int argc, char **argv)
 
     ros::Subscriber state_sub = nh.subscribe<mavros_msgs::State>
             ("mavros/state", 10, state_cb);
+
     ros::Publisher local_pos_pub = nh.advertise<geometry_msgs::PoseStamped>
             ("mavros/setpoint_position/local", 10);
+
+	ros::Publisher home_pub = nh.advertise<mavros_msgs::HomePosition>("mavros/home_position/home", 10);
+
     ros::ServiceClient arming_client = nh.serviceClient<mavros_msgs::CommandBool>
             ("mavros/cmd/arming");
     ros::ServiceClient land_client = nh.serviceClient<mavros_msgs::CommandTOL>
@@ -43,7 +49,7 @@ int main(int argc, char **argv)
         rate.sleep();
         ROS_INFO("connecting to FCT...");
     }
-
+	home_pub.publish(home_position);
     geometry_msgs::PoseStamped pose;
     pose.pose.position.x = 0;
     pose.pose.position.y = 0;
@@ -108,7 +114,7 @@ int main(int argc, char **argv)
     }
     ROS_INFO("first way point finished!");
 
-
+	/*
     // go to the second waypoint
     pose.pose.position.x = 0;
     pose.pose.position.y = 1;
@@ -163,6 +169,7 @@ int main(int argc, char **argv)
       ros::spinOnce();
       rate.sleep();
     }
+	*/
 
     ROS_INFO("tring to land");
     while (!(land_client.call(land_cmd) &&

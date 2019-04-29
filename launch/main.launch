@@ -1,4 +1,5 @@
 <launch>
-	<node name="mavros_node" pkg="mavros" type="mavros_node" args="_fcu_url:=tcp://127.0.0.1:5760 _system_id:=2" output="screen"/>
+	<!--node name="mavros_node" pkg="mavros" type="mavros_node" args="_fcu_url:=tcp://127.0.0.1:5760 _system_id:=2" output="screen"/-->
 	<include file="/home/aero/catkin_ws/src/flight_path/launch/flight_path.launch"/>
+	<!--include file="posix_sitl.launch"/-->
 </launch>
