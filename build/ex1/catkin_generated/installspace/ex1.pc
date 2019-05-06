@@ -1,8 +1,0 @@
-prefix=/home/aero/catkin_ws/install
-
-Name: ex1
-Description: Description of ex1
-Version: 0.0.0
-Cflags: 
-Libs: -L/home/aero/catkin_ws/install/lib 
-Requires: 
