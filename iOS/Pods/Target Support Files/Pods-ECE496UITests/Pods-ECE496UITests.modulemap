@@ -1,0 +1,6 @@
+framework module Pods_ECE496UITests {
+  umbrella header "Pods-ECE496UITests-umbrella.h"
+
+  export *
+  module * { export * }
+}

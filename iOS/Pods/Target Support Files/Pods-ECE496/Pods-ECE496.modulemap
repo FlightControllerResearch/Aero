@@ -1,0 +1,6 @@
+framework module Pods_ECE496 {
+  umbrella header "Pods-ECE496-umbrella.h"
+
+  export *
+  module * { export * }
+}
