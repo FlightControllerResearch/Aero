@@ -20,5 +20,8 @@ ROS package to perform A* algorithm on obstacle map and output series of path po
 ##### path_planning
 Standalone path planning sandbox.
 
+##### flight_path
+Waypoint navigation code for Intel Aero drone.
+
 ## launch/ 
 Contains relevant launch files for project.
