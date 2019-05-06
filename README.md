@@ -17,5 +17,8 @@ ROS package to communicate with RTK GPS unit.
 ##### rtk_controller
 ROS package to perform A* algorithm on obstacle map and output series of path points to follow.
 
+##### path_planning
+Standalone path planning sandbox.
+
 ## launch/ 
 Contains relevant launch files for project.
