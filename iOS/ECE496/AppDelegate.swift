@@ -49,7 +49,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     @objc func sync() {
         ref.child("Delivery Requested").observeSingleEvent(of: .value, with: { (snapshot) in
-            DeliveryInformation.deliveryInformation.delivering = snapshot.value as! Bool
+            FlightInformation.flightInformation.delivering = snapshot.value as! Bool
         })
         ref.child("Current Position").observeSingleEvent(of: .value, with: { (snapshot) in
             let value = snapshot.value as! String // String to convert to lat/lon
@@ -57,24 +57,24 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             if curPosArray.count >= 2  { // At least has all of the things I care about
                 let latitude = Double(curPosArray[0])
                 let longitude = Double(curPosArray[1])
-                DeliveryInformation.deliveryInformation.setCurrentLocation(lat: latitude ?? DeliveryInformation.deliveryInformation.defaultCoord.latitude, lon: longitude ?? DeliveryInformation.deliveryInformation.defaultCoord.longitude)
+                FlightInformation.flightInformation.setCurrentLocation(lat: latitude ?? FlightInformation.flightInformation.defaultCoord.latitude, lon: longitude ?? FlightInformation.flightInformation.defaultCoord.longitude)
             }
             
         })
         ref.child("Nearest Landmark").observeSingleEvent(of: .value, with: { (snapshot) in
-            DeliveryInformation.deliveryInformation.nearestLandmark = snapshot.value as! String
+            FlightInformation.flightInformation.nearestLandmark = snapshot.value as! String
         })
         ref.child("Distance To Destination").observeSingleEvent(of: .value, with: { (snapshot) in
-            DeliveryInformation.deliveryInformation.distanceRemaining = snapshot.value as! String
+            FlightInformation.flightInformation.distanceRemaining = snapshot.value as! String
         })
         ref.child("ETA").observeSingleEvent(of: .value, with: { (snapshot) in
-            DeliveryInformation.deliveryInformation.eta = snapshot.value as! String
+            FlightInformation.flightInformation.eta = snapshot.value as! String
         })
         ref.child("Next Waypoint").observeSingleEvent(of: .value, with: { (snapshot) in
             let value = snapshot.value as! String
             let waypointArray = value.split(separator: ",")
             if waypointArray.count > 2 {
-                DeliveryInformation.deliveryInformation.nextWaypointCoord = CLLocationCoordinate2D(latitude: Double(waypointArray[1])!, longitude: Double(waypointArray[2])!)
+                FlightInformation.flightInformation.nextWaypointCoord = CLLocationCoordinate2D(latitude: Double(waypointArray[1])!, longitude: Double(waypointArray[2])!)
             }
             
         })
@@ -83,8 +83,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             if value != nil {
                 let lineArray = value!.split(separator: ",")
                 if lineArray.count > 1 {
-                    DeliveryInformation.deliveryInformation.sideOfLine = String(lineArray[0])
-                    DeliveryInformation.deliveryInformation.distanceFromLine = Double(lineArray[1])!
+                    FlightInformation.flightInformation.sideOfLine = String(lineArray[0])
+                    FlightInformation.flightInformation.distanceFromLine = Double(lineArray[1])!
                 }
             }
         })

@@ -21,8 +21,8 @@
 		A385483621C451A100C843C7 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A385483421C451A100C843C7 /* LaunchScreen.storyboard */; };
 		A385484121C451A100C843C7 /* D2UTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385484021C451A100C843C7 /* D2UTests.swift */; };
 		A385484C21C451A100C843C7 /* D2UUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385484B21C451A100C843C7 /* D2UUITests.swift */; };
-		A3B7E76421D042800034A875 /* DeliveryInformation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B7E76321D042800034A875 /* DeliveryInformation.swift */; };
-		A3B7E76621D044530034A875 /* DeliverySettingsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B7E76521D044530034A875 /* DeliverySettingsController.swift */; };
+		A3B7E76421D042800034A875 /* FlightInformation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B7E76321D042800034A875 /* FlightInformation.swift */; };
+		A3B7E76621D044530034A875 /* FlightSettingsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B7E76521D044530034A875 /* FlightSettingsController.swift */; };
 		BABF3A326E1824801E591031 /* Pods_D2UTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EFD9B07A429DFCDACC5E004A /* Pods_D2UTests.framework */; };
 /* End PBXBuildFile section */
 
@@ -70,8 +70,8 @@
 		A385484721C451A100C843C7 /* ECE496UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ECE496UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A385484B21C451A100C843C7 /* D2UUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = D2UUITests.swift; sourceTree = "<group>"; };
 		A385484D21C451A100C843C7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A3B7E76321D042800034A875 /* DeliveryInformation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DeliveryInformation.swift; path = /Users/luke/Documents/SDProject/iOS/D2U/DeliveryInformation.swift; sourceTree = "<absolute>"; };
-		A3B7E76521D044530034A875 /* DeliverySettingsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeliverySettingsController.swift; sourceTree = "<group>"; };
+		A3B7E76321D042800034A875 /* FlightInformation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FlightInformation.swift; path = /Users/luke/Documents/SDProject/iOS/D2U/FlightInformation.swift; sourceTree = "<absolute>"; };
+		A3B7E76521D044530034A875 /* FlightSettingsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlightSettingsController.swift; sourceTree = "<group>"; };
 		C032ABD99857CF5BD0CD13BC /* Pods-D2UTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-D2UTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-D2UTests/Pods-D2UTests.debug.xcconfig"; sourceTree = "<group>"; };
 		C3E9377A33CE99784D4F8421 /* Pods_D2U.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_D2U.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CD419AD39F84D2E91481CD5A /* Pods-D2UTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-D2UTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-D2UTests/Pods-D2UTests.release.xcconfig"; sourceTree = "<group>"; };
@@ -150,14 +150,14 @@
 		A385482A21C4519F00C843C7 /* ECE496 */ = {
 			isa = PBXGroup;
 			children = (
-				A3B7E76321D042800034A875 /* DeliveryInformation.swift */,
+				A3B7E76321D042800034A875 /* FlightInformation.swift */,
 				A385482B21C4519F00C843C7 /* AppDelegate.swift */,
 				A385482D21C4519F00C843C7 /* MapMainController.swift */,
 				A385482F21C4519F00C843C7 /* Main.storyboard */,
 				A385483221C451A100C843C7 /* Assets.xcassets */,
 				A385483421C451A100C843C7 /* LaunchScreen.storyboard */,
 				A385483721C451A100C843C7 /* Info.plist */,
-				A3B7E76521D044530034A875 /* DeliverySettingsController.swift */,
+				A3B7E76521D044530034A875 /* FlightSettingsController.swift */,
 				A381F9FC21D1285F00C1088E /* Waypoint.swift */,
 				A381F9FE21D1BCE000C1088E /* MapMainSettings.swift */,
 				A36765B622209A4D00231FB8 /* GoogleService-Info.plist */,
@@ -436,10 +436,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A3B7E76621D044530034A875 /* DeliverySettingsController.swift in Sources */,
+				A3B7E76621D044530034A875 /* FlightSettingsController.swift in Sources */,
 				A385482E21C4519F00C843C7 /* MapMainController.swift in Sources */,
 				A381F9FF21D1BCE000C1088E /* MapMainSettings.swift in Sources */,
-				A3B7E76421D042800034A875 /* DeliveryInformation.swift in Sources */,
+				A3B7E76421D042800034A875 /* FlightInformation.swift in Sources */,
 				A381F9FD21D1285F00C1088E /* Waypoint.swift in Sources */,
 				A385482C21C4519F00C843C7 /* AppDelegate.swift in Sources */,
 			);

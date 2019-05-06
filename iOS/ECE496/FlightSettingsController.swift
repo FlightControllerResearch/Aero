@@ -9,7 +9,7 @@
 import MapKit
 import UIKit
 
-class DeliverySettingsController: UIViewController {
+class FlightSettingsController: UIViewController {
     
     @IBOutlet weak var deliverBtn: UIButton!
     
@@ -36,13 +36,13 @@ class DeliverySettingsController: UIViewController {
     }
     
     private func handleViewingEvents() {
-        if DeliveryInformation.deliveryInformation.delivering {
+        if FlightInformation.flightInformation.delivering {
             self.disableDeliveryBtn()
         }
-        self.currentLocationLbl.text = String(format: "%.4f, %.4f", DeliveryInformation.deliveryInformation.curCoord?.latitude ?? 0.0, DeliveryInformation.deliveryInformation.curCoord?.longitude ?? 0.0)
-        self.currentLandmarkLbl.text = DeliveryInformation.deliveryInformation.nearestLandmark
-        self.currentDistanceLbl.text = DeliveryInformation.deliveryInformation.distanceRemaining
-        self.etaLabel.text = DeliveryInformation.deliveryInformation.eta
+        self.currentLocationLbl.text = String(format: "%.4f, %.4f", FlightInformation.flightInformation.curCoord?.latitude ?? 0.0, FlightInformation.flightInformation.curCoord?.longitude ?? 0.0)
+        self.currentLandmarkLbl.text = FlightInformation.flightInformation.nearestLandmark
+        self.currentDistanceLbl.text = FlightInformation.flightInformation.distanceRemaining
+        self.etaLabel.text = FlightInformation.flightInformation.eta
     }
     
     @objc func sync() {

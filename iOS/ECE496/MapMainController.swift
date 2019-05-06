@@ -99,14 +99,14 @@ class MapMainController: UIViewController, CLLocationManagerDelegate, MKMapViewD
             freeFloatBtn.setBackgroundImage(UIImage(named: "Earth_gray.png"), for: UIControl.State.normal)
             print("Centering on user")
         case .robot:
-            centerCoord = DeliveryInformation.deliveryInformation.curCoord ?? defaultCoord
+            centerCoord = FlightInformation.flightInformation.curCoord ?? defaultCoord
             centerOnUserBtn.setBackgroundImage(UIImage(named: "WalkingMan_gray.png"), for: UIControl.State.normal)
             centerOnRobotBtn.setBackgroundImage(UIImage(named: "Drone_gold.png"), for: UIControl.State.normal)
             centerOnDestinationBtn.setBackgroundImage(UIImage(named: "Destination_gray.png"), for: UIControl.State.normal)
             freeFloatBtn.setBackgroundImage(UIImage(named: "Earth_gray.png"), for: UIControl.State.normal)
             print("Centering on robot")
         case .destination:
-            centerCoord = DeliveryInformation.deliveryInformation.endCoord ?? defaultCoord
+            centerCoord = FlightInformation.flightInformation.endCoord ?? defaultCoord
             centerOnUserBtn.setBackgroundImage(UIImage(named: "WalkingMan_gray.png"), for: UIControl.State.normal)
             centerOnRobotBtn.setBackgroundImage(UIImage(named: "Drone_gray.png"), for: UIControl.State.normal)
             centerOnDestinationBtn.setBackgroundImage(UIImage(named: "Destination_gold.png"), for: UIControl.State.normal)
@@ -185,12 +185,12 @@ class MapMainController: UIViewController, CLLocationManagerDelegate, MKMapViewD
     
     @objc func sync() {
         self.drawPin(pinType: MapMainSettings.mapMainSettings.userPin!, waypoint: userLocation)
-        let robotLoc = Waypoint(coordinate: DeliveryInformation.deliveryInformation.curCoord ?? defaultCoord, image: MapMainSettings.mapMainSettings.robotPin!)
+        let robotLoc = Waypoint(coordinate: FlightInformation.flightInformation.curCoord ?? defaultCoord, image: MapMainSettings.mapMainSettings.robotPin!)
         self.drawPin(pinType: MapMainSettings.mapMainSettings.robotPin!, waypoint: robotLoc)
-        let destinationLoc = Waypoint(coordinate: DeliveryInformation.deliveryInformation.endCoord ?? defaultCoord, image: MapMainSettings.mapMainSettings.destinationPin!)
+        let destinationLoc = Waypoint(coordinate: FlightInformation.flightInformation.endCoord ?? defaultCoord, image: MapMainSettings.mapMainSettings.destinationPin!)
         self.drawPin(pinType: MapMainSettings.mapMainSettings.destinationPin!, waypoint: destinationLoc)
         
-        let nextWaypointLoc = Waypoint(coordinate: DeliveryInformation.deliveryInformation.nextWaypointCoord ?? defaultCoord, image: MapMainSettings.mapMainSettings.nextWaypointPin!)
+        let nextWaypointLoc = Waypoint(coordinate: FlightInformation.flightInformation.nextWaypointCoord ?? defaultCoord, image: MapMainSettings.mapMainSettings.nextWaypointPin!)
         self.drawPin(pinType: MapMainSettings.mapMainSettings.nextWaypointPin!, waypoint: nextWaypointLoc)
         
         centerMap()

@@ -110,10 +110,10 @@
             </objects>
             <point key="canvasLocation" x="1648.8" y="57.121439280359823"/>
         </scene>
-        <!--Delivery Settings Controller-->
+        <!--Flight Settings Controller-->
         <scene sceneID="xhN-cm-Wjf">
             <objects>
-                <viewController id="Dey-Ot-ip4" customClass="DeliverySettingsController" customModule="ECE496" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="Dey-Ot-ip4" customClass="FlightSettingsController" customModule="ECE496" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="CsW-yi-Bz9">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
