@@ -2,10 +2,10 @@
 This is the repository for flight research on the Intel Aero drone.
 
 
-#### iOS
+## iOS
 Contains all iOS project files.
 
-#### src/
+## src/
 Contains all packages and source files for the ROS workspace.
 
 ##### fb
@@ -17,5 +17,5 @@ ROS package to communicate with RTK GPS unit.
 ##### rtk_controller
 ROS package to perform A* algorithm on obstacle map and output series of path points to follow.
 
-#### launch/ 
+## launch/ 
 Contains relevant launch files for project.
