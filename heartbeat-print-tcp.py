@@ -29,6 +29,7 @@ if __name__ == "__main__":
     m = mav.recv_match(type='HEARTBEAT', blocking=True)
     if m is not None:
 	print(m)
-	mav.mav.command_long_send(mav.target_system, mav.target_component, mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,0,1,0,0,0,0,0,0)
-	time.sleep(3)
+	#mav.mav.command_long_send(mav.target_system, mav.target_component, mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,0,1,0,0,0,0,0,0)
+	#time.sleep(3)
 	mav.mav.command_long_send(mav.target_system, mav.target_component, mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,0,0,0,0,0,0,0,0)
+	time.sleep(3)

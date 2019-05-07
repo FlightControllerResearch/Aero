@@ -1,6 +1,6 @@
 /*
 * @brief This program handles broadcasting points to the microcontroller in its current reference frame. It takes into account the current position and 
-*           heading of the robot as reported by the EKF and plans a trajectory to the next waypoint. #ifdef guards are used when wanting to use a different algorithm to calculate the points.
+*           heading of the drone as reported by the IMU and plans a trajectory to the next waypoint. #ifdef guards are used when wanting to use a different algorithm to calculate the points.
 *           A* algorithm is self contained in this package.
 * @author Luke Armbruster
 * @bug Point projection onto the waypoint line itself instead of a trajectory between the robot and the next waypoint has not been confirmed to work. Boost precision library had to be used since a double did not have enough precision for the calculation (may take a performance hit).
@@ -75,14 +75,14 @@ static std_msgs::Float32 pitch_msg;
 static sensor_msgs::NavSatFix goal_msg;
 static sensor_msgs::NavSatFix goal_math_msg;
 
-static std::chrono::time_point<std::chrono::system_clock> last_ekf_received_time = std::chrono::system_clock::now(); // Last time a message was received from the EKF
+static std::chrono::time_point<std::chrono::system_clock> last_position_received_time = std::chrono::system_clock::now(); // Last time a position message was received
 static std::chrono::time_point<std::chrono::system_clock> time_last_position_series_sent = std::chrono::system_clock::now(); // Time that the last string of points was sent to the micro
 //static std::chrono::duration<double> time_since_last_position_series_sent;
 
 static std::string next_waypoint_key = "";
 static std::string prev_waypoint_key = "";
 static MapNode prev_waypoint = MapNode(0.0f, 0.0f);
-static float cur_heading_ekf = 0.0f; // Most recent heading received from the EKF
+static float cur_heading = 0.0f; // Most recent heading received from the EKF
 
 static float x_series[SERIES_LENGTH] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 static float y_series[SERIES_LENGTH] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
@@ -130,10 +130,12 @@ void LocalMapCallback(const sensor_msgs::ImageConstPtr& msg) {
 }
 
 /*
-*  Store the most recent heading from the EKF until a filtered NavSatFix message is received
+*  Store the most recent heading from the IMU message is received
+*	TODO: Need to convert quaternion to absolute Euler angle
 */
-void EKFHeadingCallback(const sensor_msgs::Imu::ConstPtr& msg) { 
-    cur_heading_ekf = 2 * pi - msg->orientation.y; // Rotation is inverted from standard notation
+void HeadingCallback(const sensor_msgs::Imu::ConstPtr& msg) { 
+	
+    cur_heading = 2 * pi - msg->orientation.y; // Rotation is inverted from standard notation
 }
 
 void PitchCallback(const std_msgs::Float32::ConstPtr& msg) {
@@ -143,10 +145,10 @@ void PitchCallback(const std_msgs::Float32::ConstPtr& msg) {
 /*
 *  Iterpolate next set of points to the goal after a specified amount of time when an EKF message is received and perform path planning.
 */
-void EKFPosCallback(const sensor_msgs::NavSatFix::ConstPtr& msg) {
+void PosCallback(const sensor_msgs::NavSatFix::ConstPtr& msg) {
     auto cur_time = std::chrono::system_clock::now();
     std::chrono::duration<double> time_since_last_position_series_sent = cur_time - time_last_position_series_sent;
-    last_ekf_received_time = std::chrono::system_clock::now();
+    last_position_received_time = std::chrono::system_clock::now();
     if(time_since_last_position_series_sent.count() < 3.0f) { // Not sending messages closer than one second apart
         return;
     }
@@ -192,9 +194,9 @@ void EKFPosCallback(const sensor_msgs::NavSatFix::ConstPtr& msg) {
         wpt_pub.publish(wpt_msg);
 
         std::cout.precision(10);
-        float angle_delta = angle - cur_heading_ekf;
+        float angle_delta = angle - cur_heading;
         if(angle_delta > pi / 2.0f || angle_delta < -pi / 2.0f) {
-            ROS_ERROR("INVALID HEADING - Current EKF: %f, Current Map: %f", cur_heading_ekf, angle);
+            ROS_ERROR("INVALID HEADING - Current Heading: %f, Current Map: %f", cur_heading, angle);
             return;
         }
         // Obtain a desired endpoint based on the heading to the next waypoint
@@ -311,7 +313,7 @@ void EKFPosCallback(const sensor_msgs::NavSatFix::ConstPtr& msg) {
                   y_series[i] = y_series[i] - cur_coord.first;
                   
                   // Rotation
-                  double delta_theta = cur_heading_ekf;
+                  double delta_theta = cur_heading;
                   double robot_x = (x_series[i] * cos(delta_theta) - y_series[i] * sin(delta_theta)) * DEGREE_MULTI_FACTOR;
                   double robot_y = (x_series[i] * sin(delta_theta) + y_series[i] * cos(delta_theta)) * DEGREE_MULTI_FACTOR;
 
@@ -348,15 +350,15 @@ void EKFPosCallback(const sensor_msgs::NavSatFix::ConstPtr& msg) {
                     boost::multiprecision::cpp_dec_float_50 d = prev_waypoint.lon;
                     boost::multiprecision::cpp_dec_float_50 e = cur_coord.second;
                     boost::multiprecision::cpp_dec_float_50 f = cur_coord.first;
-                    boost::multiprecision::cpp_dec_float_50 tan_theta = tan(cur_heading_ekf);
-                    /*cur_heading_ekf = 4.0;
+                    boost::multiprecision::cpp_dec_float_50 tan_theta = tan(cur_heading);
+                    /*cur_heading = 4.0;
                     boost::multiprecision::cpp_dec_float_50 a = 40.429155;
                     boost::multiprecision::cpp_dec_float_50 b = 40.429053;
                     boost::multiprecision::cpp_dec_float_50 c = -86.91313;
                     boost::multiprecision::cpp_dec_float_50 d = -86.912977;
                     boost::multiprecision::cpp_dec_float_50 e = -86.91297933;
                     boost::multiprecision::cpp_dec_float_50 f = 40.42914998;
-                    boost::multiprecision::cpp_dec_float_50 tan_theta = tan(cur_heading_ekf);*/
+                    boost::multiprecision::cpp_dec_float_50 tan_theta = tan(cur_heading);*/
 
                     double x_test = (c.convert_to<double>() - d.convert_to<double>()) / (b.convert_to<double>() - a.convert_to<double>()) * (f.convert_to<double>() - a.convert_to<double>()) + d.convert_to<double>(); //corrected last term
 
@@ -368,7 +370,7 @@ void EKFPosCallback(const sensor_msgs::NavSatFix::ConstPtr& msg) {
                     if(x_test > e) {
                         
                         std::cout << "Left side of line: " << x_test << std::endl;
-                        double heading_diff = acos(cos(waypoint_heading) * cos(cur_heading_ekf) + sin(waypoint_heading)*sin(cur_heading_ekf)); 
+                        double heading_diff = acos(cos(waypoint_heading) * cos(cur_heading) + sin(waypoint_heading)*sin(cur_heading)); 
                         if(heading_diff > 0 && heading_diff < pi/2) {
                             away = true;
                         } else if(heading_diff > pi/2 && heading_diff < pi) {
@@ -380,7 +382,7 @@ void EKFPosCallback(const sensor_msgs::NavSatFix::ConstPtr& msg) {
                         }
                     } else {
                         std::cout << "Right side of line: " << x_test << std::endl;
-                        double heading_diff = acos(cos(waypoint_heading) * cos(cur_heading_ekf) + sin(waypoint_heading)*sin(cur_heading_ekf)); 
+                        double heading_diff = acos(cos(waypoint_heading) * cos(cur_heading) + sin(waypoint_heading)*sin(cur_heading)); 
                         if(heading_diff > 0 && heading_diff < pi/2) {
                             away = false;
                         } else if(heading_diff > pi/2 && heading_diff < pi) {
@@ -397,7 +399,7 @@ void EKFPosCallback(const sensor_msgs::NavSatFix::ConstPtr& msg) {
                     boost::multiprecision::cpp_dec_float_50 intersect_pt_lat;
                     std::cout << std::setprecision(10);
                     if(away) {
-                        std::cout << "a: " << a << " b: " << b << " c: " << c << " d: " << d << " e: " << e << " f: " << f << " theta: " << cur_heading_ekf << std::endl;
+                        std::cout << "a: " << a << " b: " << b << " c: " << c << " d: " << d << " e: " << e << " f: " << f << " theta: " << cur_heading << std::endl;
                         intersect_pt_lon = (a * c - b * d - c * f + d * f - c * e * tan_theta + d * e * tan_theta) / (a - b - c * tan_theta + d * tan_theta);
                         intersect_pt_lat = (a * f - b * f - a * c * tan_theta + a * e * tan_theta + b * d * tan_theta - b * e * tan_theta) / (a - b - c * tan_theta + d * tan_theta);
                         std::cout << "Away" << std::endl;
@@ -405,7 +407,7 @@ void EKFPosCallback(const sensor_msgs::NavSatFix::ConstPtr& msg) {
                         std::cout << intersect_pt_lat << std::endl;
                     } else {
                         // TOWARD
-                        std::cout << "a: " << a << " b: " << b << " c: " << c << " d: " << d << " e: " << e << " f: " << f << " theta: " << cur_heading_ekf << std::endl;
+                        std::cout << "a: " << a << " b: " << b << " c: " << c << " d: " << d << " e: " << e << " f: " << f << " theta: " << cur_heading << std::endl;
                         boost::multiprecision::cpp_dec_float_50 toward_denom = boost::multiprecision::cpp_dec_float_50(a * a - 2 * a * b + b * b + c * c - 2 * c * d + d * d);
                         intersect_pt_lon = boost::multiprecision::cpp_dec_float_50(a * a * c - a * b * c - a * b * d - f * a * c + f * a * d + b * b * d + f * b * c - f * b * d + e * c * c - 2 * e * c * d + e * d * d) / toward_denom;
                         intersect_pt_lat = boost::multiprecision::cpp_dec_float_50(f * a * a - 2 * f * a * b + a * c * c - a * c * d - e * a * c + e * a * d + f * b * b - b * c * d + e * b * c + b * d * d - e * b * d) / toward_denom;
@@ -413,7 +415,7 @@ void EKFPosCallback(const sensor_msgs::NavSatFix::ConstPtr& msg) {
                         std::cout << intersect_pt_lon << std::endl;
                         std::cout << intersect_pt_lat << std::endl;
                     }
-                    std::cout << "Robot heading: " << cur_heading_ekf << " Waypoint heading: " << waypoint_heading << std::endl;
+                    std::cout << "Robot heading: " << cur_heading << " Waypoint heading: " << waypoint_heading << std::endl;
                     // have point of intersection use waypoint heading here to add points on line
                     for(int i = 0; i < 8; i++) { 
                         // These are the points interpolated along the line in latitude/longitude
@@ -433,7 +435,7 @@ void EKFPosCallback(const sensor_msgs::NavSatFix::ConstPtr& msg) {
 
 
                         // Rotation
-                        double delta_theta = cur_heading_ekf;
+                        double delta_theta = cur_heading;
                         double robot_x = (new_x * cos(delta_theta) - new_y * sin(delta_theta)) * DEGREE_MULTI_FACTOR;
                         double robot_y = (new_x * sin(delta_theta) + new_y * cos(delta_theta)) * DEGREE_MULTI_FACTOR;
 
@@ -470,8 +472,8 @@ int main(int argc, char **argv)
     wpt_pub = nh.advertise<sensor_msgs::NavSatFix>("next_waypoint", 1000);
     goal_pub = nh.advertise<sensor_msgs::NavSatFix>("goal_pt", 1000);
     goal_math_pub = nh.advertise<sensor_msgs::NavSatFix>("goal_math_pt", 1000);
-    ros::Subscriber ekf_pos_sub = nh.subscribe("/ekf/filtered", 1000, EKFPosCallback);
-    ros::Subscriber ekf_heading_sub = nh.subscribe("/ekf/imu/data", 1000, EKFHeadingCallback);
+    ros::Subscriber pos_sub = nh.subscribe("/mavros/global_position/raw/fix", 1000, PosCallback);
+    ros::Subscriber heading_sub = nh.subscribe("/mavros/imu/data", 1000, HeadingCallback);
     ros::Subscriber gpvtg_sub = nh.subscribe("rtk_gpvtg", 1000, gpvtgCallback);
     ros::Subscriber local_map = nh.subscribe("perception/map", 1000, LocalMapCallback);
     ros::Subscriber pitch_sub = nh.subscribe("pitch", 1000, PitchCallback);
@@ -485,9 +487,9 @@ int main(int argc, char **argv)
     prev_waypoint_key = MapData::path_map.begin()->first;
     next_waypoint_key = std::next(MapData::path_map.begin())->first;
 
-    // Poll for EKF messages and publish path points
+    // Poll for messages and publish path points
     ros::Rate r(10);
-    last_ekf_received_time = std::chrono::system_clock::now();
+    last_position_received_time = std::chrono::system_clock::now();
 
     LocalOp::addMap(50, 25);
 
@@ -499,9 +501,9 @@ int main(int argc, char **argv)
 
     while(ros::ok()) {
         cur_time = std::chrono::system_clock::now();
-        elapsed_time = cur_time - last_ekf_received_time;
-        if(elapsed_time.count() > 3.0f) { // Went 3 seconds without an EKF message. Better stop.
-            ROS_ERROR("3 seconds without EKF data");
+        elapsed_time = cur_time - last_position_received_time;
+        if(elapsed_time.count() > 3.0f) { // Went 3 seconds without a position message. Better stop.
+            ROS_ERROR("3 seconds without position data");
         }
         elapsed_time = cur_time - start_landmark;
 
